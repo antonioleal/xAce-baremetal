@@ -1,0 +1,33 @@
+Circle in xAce-baremetal
+========================
+
+This folder is a copy of the Circle C++ bare metal environment for the
+Raspberry Pi, by Rene Stange, used to build xAce-baremetal:
+
+    Project:  https://github.com/rsta2/circle
+    Version:  Step51.1.1
+    Commit:   7a81e1b480fe7d19fc1fc695b89bff0a0848f44b
+              (25 September 2026, "Merge branch 'hotfix-51.1.1'")
+
+It was a git submodule of xAce-baremetal; it is now a plain copy, so that
+the project builds from its own sources alone.
+
+The files are those of that commit, unchanged, except:
+
+  * Circle's own submodules addon/lvgl/lvgl (LVGL graphics library) and
+    addon/wlan/hostap (WLAN support) are not included: their folders are
+    empty. xAce-baremetal does not use them.
+
+  * Config.mk (Circle's build configuration, ignored by Circle's .gitignore)
+    is copied in by ../build.sh from ../circle-config/Config.mk: Raspberry Pi
+    model, 32-bit mode and the project's toolchain.
+
+Build output (*.o, *.a, *.d, ...) is ignored by Circle's .gitignore.
+
+Circle is licensed under the GNU General Public License version 3, see
+LICENSE in this folder.
+
+To update Circle, replace this folder with the files of a newer commit of
+https://github.com/rsta2/circle (keeping this file and updating it), then
+rebuild everything: ./build.sh cleans and rebuilds when the model changes;
+otherwise run "./makeall clean" here first.

@@ -1,0 +1,20 @@
+# Downloaded by download_toolchain.sh
+toolchain/
+
+# Build output
+src/*.o
+src/*.d
+src/*.elf
+src/*.img
+src/*.lst
+src/*.map
+
+# Boot firmware and build output copied by make sdcard
+sdcard/*
+!sdcard/.gitkeep
+
+# Model the last build was made for (build.sh)
+.build-model
+
+# Release zips (release.sh)
+dist/

@@ -1,0 +1,8 @@
+
+1. test VERIFY and BVERIFY
+
+3. Make it "cycle exact"
+
+4. PI 5 / 500 support
+
+4. Display or Input enhancements: Fullscreen scaling, joystick support, or on-screen menus.

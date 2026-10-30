@@ -1,0 +1,31 @@
+# Raspberry Pi config.txt for xAce Baremetal (32-bit kernel, built by ../build.sh)
+
+# Each model loads the kernel image built for it
+[pi0]
+kernel=kernel.img
+[pi1]
+kernel=kernel.img
+[pi2]
+kernel=kernel7.img
+[pi3]
+kernel=kernel8-32.img
+[pi02]
+kernel=kernel8-32.img
+[pi4]
+kernel=kernel7l.img
+
+[all]
+# 32-bit mode
+arm_64bit=0
+
+# Force standard 640x480 HDMI output
+hdmi_force_hotplug=1
+hdmi_group=1
+hdmi_mode=1
+
+# Enable mini-UART for Circle debug logs (115200 baud, 8N1)
+enable_uart=1
+
+# Audio & Power settings
+disable_overscan=1
+initial_turbo=30

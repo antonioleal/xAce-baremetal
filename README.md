@@ -5,8 +5,6 @@ This project consists of the **xAce** Jupiter Ace emulator ported to run baremet
 
 Please visit the [Jupiter ACE Archive](https://www.jupiter-ace.co.uk/index.html) to obtain software for this emulator and give your contribution if you find it useful.
 
-I cannot claim to be the sole author of this, that little orange circled white star gives me some help :-)
-
 Ready to use Zip files with the binaries are provided, so you can directly download them to your PI's formatted sdcard. See the **SD Card Preparation** paragraph below.
 
 ---

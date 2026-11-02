@@ -30,6 +30,7 @@
 #include "save_dictionary.h"
 #include "spool_ace.h"
 #include "keyboard_circle.h"
+#include "tape_sd.h"
 
 #include <circle/logger.h>
 #include <circle/string.h>
@@ -41,7 +42,7 @@ extern "C" {
 }
 
 #define DRIVE           "SD:"
-#define MAX_PATH        (sizeof(DRIVE) + 1 + FF_MAX_LFN + 1)
+#define MAX_PATH        TAPE_FULL_PATH_SIZE
 
 #define FIRST_WORD      0x3C51      // after the FORTH vocabulary word
 #define FORTH_NLF       0x3C49      // FORTH's name length field: the link of the oldest word
@@ -100,6 +101,7 @@ static boolean s_bAbort = FALSE;
 static boolean s_bWriteError = FALSE;
 static FIL s_File;
 static char s_Path[MAX_PATH];
+static char s_RelativePath[TAPE_PATH_SIZE];     // s_Path in SD:/programs
 
 static char s_Capture[CAPTURE_SIZE];
 static unsigned s_nCapture;
@@ -435,7 +437,8 @@ static void finish(void)
     }
     s_bActive = FALSE;
 
-    const char *pName = s_Path + sizeof(DRIVE);
+    // The path if it fits on the screen's row, else the name only
+    const char *pName = strlen(s_RelativePath) <= 30 ? s_RelativePath : TapeBaseName(s_RelativePath);
     CString Line;
     if (s_bAbort || s_bWriteError) {
         f_unlink(s_Path);
@@ -455,10 +458,9 @@ static void finish(void)
     s_bResult = TRUE;
 }
 
-TSaveResult SaveDictionaryStart(const char *pInput, char *pName, unsigned nNameSize,
-                                unsigned *pWords)
+TSaveResult SaveDictionaryStart(const char *pInput, char *pPath, unsigned *pWords)
 {
-    pName[0] = '\0';
+    pPath[0] = '\0';
     *pWords = 0;
     if (s_bActive || SpoolActive()) {
         return SaveNotAtPrompt;
@@ -497,12 +499,16 @@ TSaveResult SaveDictionaryStart(const char *pInput, char *pName, unsigned nNameS
     order_words();
     *pWords = s_nWords;
 
-    strcpy(s_Path, DRIVE "/");
-    strncat(s_Path, pInput, sizeof(s_Path) - strlen(s_Path) - 5);
+    char Name[FF_MAX_LFN + 5];
+    copy_string(Name, pInput, FF_MAX_LFN + 1);
     if (pExtension == nullptr) {
-        strcat(s_Path, ".fth");
+        strcat(Name, ".fth");
     }
-    copy_string(pName, s_Path + sizeof(DRIVE), nNameSize);
+    if (   !TapeJoinPath(s_RelativePath, TapeGetFolder(), Name)
+        || !TapeFullPath(s_RelativePath, s_Path)) {
+        return SaveInvalidName;
+    }
+    copy_string(pPath, s_RelativePath, TAPE_PATH_SIZE);
 
     FRESULT Result = f_open(&s_File, s_Path, FA_WRITE | FA_CREATE_NEW);
     if (Result == FR_EXIST) {

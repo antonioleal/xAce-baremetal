@@ -24,6 +24,7 @@
  */
 #include "spool_ace.h"
 #include "keyboard_circle.h"
+#include "tape_sd.h"
 
 #include <circle/logger.h>
 #include <circle/string.h>
@@ -35,7 +36,7 @@ extern "C" {
 }
 
 #define DRIVE           "SD:"
-#define MAX_PATH        (sizeof(DRIVE) + 1 + FF_MAX_LFN + 1)
+#define MAX_PATH        TAPE_FULL_PATH_SIZE
 
 #define STATIN          0x3C28      // bit 0: waiting for input; bits 1-3: caps, graphics, inverse
 #define STATIN_INPUT    0x01
@@ -51,15 +52,15 @@ extern "C" {
 
 static const char FromSpool[] = "spool";
 
-static FIL s_File;
+static TTapeReader s_File;              // the file, on the card or from a .zip
 static boolean s_bActive = FALSE;
 static char s_Name[MAX_PATH];
 static const char *s_pText = nullptr;   // typing text from memory (SpoolStartText()), not a file
 static boolean s_bFinalEnter = TRUE;    // Enter after a last line that has none
 
 static unsigned char s_Buffer[512];
-static UINT s_nCount = 0;
-static UINT s_nPos = 0;
+static unsigned s_nCount = 0;
+static unsigned s_nPos = 0;
 static int s_nUnread = -1;          // a byte read ahead (after CR)
 
 static unsigned s_nKeyFrames = 0;   // frames left with the key down
@@ -88,36 +89,32 @@ void SpoolPatchROM(unsigned char *pROM)
 // restart through it without a message)
 extern "C" void spool_error_p(unsigned char nError)
 {
+    TapeRomError();                     // ends a LOAD that was looking for its file
+
     if (s_bActive && nError != 0xFF) {
         s_nRomError = nError;
         s_bRomError = TRUE;
     }
 }
 
-TSpoolResult SpoolStart(const char *pInput)
+TSpoolResult SpoolStart(const char *pPath)
 {
     if (s_bActive) {
-        f_close(&s_File);
+        if (s_pText == nullptr) {
+            TapeReaderClose(&s_File);
+        }
         s_bActive = FALSE;
     }
 
-    if (pInput[0] == '\0' || pInput[0] == ' ' || pInput[0] == '.') {
+    if (!TapeIsValidPath(pPath, FALSE) || !TapeFullPath(pPath, s_Name)) {
         return SpoolInvalidName;
     }
-    for (const char *p = pInput; *p != '\0'; p++) {
-        if (*p < 0x20 || strchr("\\/:*?\"<>|", *p) != nullptr) {
-            return SpoolInvalidName;
-        }
-    }
 
-    strcpy(s_Name, DRIVE "/");
-    strncat(s_Name, pInput, sizeof(s_Name) - strlen(s_Name) - 5);
-
-    FRESULT Result = f_open(&s_File, s_Name, FA_READ | FA_OPEN_EXISTING);
-    if (Result == FR_NOT_READY || Result == FR_INVALID_DRIVE || Result == FR_NOT_ENABLED) {
+    TTapeFileResult Result = TapeReaderOpen(&s_File, pPath);
+    if (Result == TapeFileNoCard) {
         return SpoolNoCard;
     }
-    if (Result != FR_OK) {
+    if (Result != TapeFileOK) {
         return SpoolNotFound;
     }
 
@@ -186,7 +183,7 @@ static void stop(const char *pWhy)
         return;
     }
 
-    f_close(&s_File);
+    TapeReaderClose(&s_File);
     keyboard_set_spooling(0);
 
     CString Notes;
@@ -223,7 +220,7 @@ static int read_byte(void)
         return *s_pText != '\0' ? (unsigned char) *s_pText++ : -1;
     }
     if (s_nPos >= s_nCount) {
-        if (f_read(&s_File, s_Buffer, sizeof(s_Buffer), &s_nCount) != FR_OK || s_nCount == 0) {
+        if (!TapeReaderRead(&s_File, s_Buffer, sizeof(s_Buffer), &s_nCount) || s_nCount == 0) {
             return -1;
         }
         s_nPos = 0;

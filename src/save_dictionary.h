@@ -22,11 +22,11 @@ enum TSaveResult {
     SaveError
 };
 
-// Start saving to SD:/<name>: a .fth, .fs or .f file (".fth" is added when there is
-// no extension; other extensions are refused as SaveInvalidName).
-// pName gets the file name, *pWords the number of words to save.
-TSaveResult SaveDictionaryStart(const char *pInput, char *pName, unsigned nNameSize,
-                                unsigned *pWords);
+// Start saving to a file in the F5 folder (tape_sd.h): a .fth, .fs or .f file (".fth"
+// is added when there is no extension; other extensions are refused as
+// SaveInvalidName). pPath gets its path in SD:/programs (TAPE_PATH_SIZE bytes),
+// *pWords the number of words to save.
+TSaveResult SaveDictionaryStart(const char *pInput, char *pPath, unsigned *pWords);
 
 boolean SaveDictionaryActive(void);
 

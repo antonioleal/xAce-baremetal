@@ -458,6 +458,11 @@ THTTPStatus CHTTPDaemon::ParseRequest (void)
 
 	// check for parameters
 	const char *pParams = strchr (m_RequestURI, '?');
+	// xAce-baremetal: the path must fit m_RequestPath
+	if ((pParams != 0 ? (size_t) (pParams-m_RequestURI) : strlen (m_RequestURI)) > HTTP_MAX_PATH)
+	{
+		return HTTPRequestURITooLong;
+	}
 	if (pParams != 0)
 	{
 		strncpy (m_RequestPath, m_RequestURI, pParams-m_RequestURI);

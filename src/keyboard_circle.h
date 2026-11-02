@@ -17,6 +17,7 @@ int keyboard_check_poweroff(void);  // F10 or the power key (Fn+F10) pressed sin
 int keyboard_check_layout(void);    // F8 pressed since the last call
 int keyboard_check_ram(void);       // Ctrl+F12 pressed since the last call
 int keyboard_check_save(void);      // F7 pressed since the last call
+int keyboard_check_network(void);   // F11 pressed since the last call
 
 // Line history (line_history.cpp), since the last call: TAB (1, an older line) or
 // Shift+TAB (-1, a newer one); Enter pressed; any other key pressed

@@ -39,6 +39,16 @@ struct z80_snapshot {
 extern struct z80_snapshot snapshot;
 extern int load_snapshot;
 
+/* The CPU registers as they are now, for saving an .ace snapshot (F7): updated by
+ * mainloop() just before every fix_tstates(), so while the Ace is paused in one */
+extern struct z80_snapshot cpu_state;
+
+/* The 96K RAM pack (ram_ace.h): LD R,A sets ram_latch_pending (with the pack), and
+ * the next refresh (opcode fetch or interrupt acknowledge) calls ram_latch() */
+extern int ram_paging;
+extern int ram_latch_pending;
+void ram_latch(unsigned char ucR);
+
 extern unsigned int in(int h, int l);
 extern unsigned int out(int h,int l, int a);
 extern void do_interrupt(void);
@@ -46,6 +56,13 @@ extern void mainloop(void);
 extern void fix_tstates(void);
 extern void spool_error_p(unsigned char error);   /* ED FB trap, spool_ace.cpp */
 extern void save_dictionary_out_p(unsigned char c);   /* ED F9 trap, save_dictionary.cpp */
+
+/* tape_load_p() (ED FC trap, tape_sd.cpp): give the ROM's ERROR 10, or BREAK */
+#define TAPE_LOAD_ERROR (-1)
+#define TAPE_LOAD_BREAK (-2)
+#define ROM_TAPE_ERROR  0x1ab6     /* RST 20h / DEFB 10 in the ROM's LOAD */
+#define ROM_TAPE_BREAK  0x04f0     /* RST 20h / DEFB 3, where 18A7h goes on BREAK */
+#define ROM_LOAD_HEADER_RETURN 0x1a81   /* after LOAD's CALL 18A7h for a header */
 
 #define fetch(x) (memptr[(unsigned short)(x&0xe000)>>13][(x)&0x1fff])
 #define fetch2(x) ((fetch((x)+1)<<8)|fetch(x))

@@ -121,6 +121,8 @@ endinstr;
 instr(0x4f,5);
    r=a;
    radjust=r;
+   if (ram_paging)              /* 96K RAM pack: bit 7 is latched at the next refresh */
+     ram_latch_pending=1;
 endinstr;
 
 instr(0x50,8);
@@ -508,12 +510,22 @@ endinstr;
 
 /* save/load patches */
 instr(0xfc,4);
-  /* the ROM's block read (18A7h): carry set to load, clear to verify; carry set
-     on return if the block was read (and, verifying, matched memory) */
-  if(tape_load_p(mem, hl, de, f&1))
-    f=(f&0xc4)|1|(a&0x28);
-  else
-    f=(f&0xc4)|(a&0x28);
+  /* the ROM's block read (18A7h): HL address, DE length, C flag byte (00h header,
+     FFh data), carry set to load, clear to verify; carry set on return if the block
+     was read (and, verifying, matched memory) */
+  {
+    int result=tape_load_p(mem, hl, de, c, f&1, fetch2(sp));
+    if(result==TAPE_LOAD_ERROR) {
+      /* return from 18A7h, then ERROR 10 as the ROM's LOAD gives it */
+      sp+=2;
+      pc=ROM_TAPE_ERROR;
+    } else if(result==TAPE_LOAD_BREAK) {
+      pc=ROM_TAPE_BREAK;       /* as 18A7h does, with the caller's return address stacked */
+    } else if(result)
+      f=(f&0xc4)|1|(a&0x28);
+    else
+      f=(f&0xc4)|(a&0x28);
+  }
 endinstr;
 
 instr(0xfd,4);

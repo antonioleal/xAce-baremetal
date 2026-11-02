@@ -1,3 +1,66 @@
+## 0.7 (2nd November 2026)
+
+ * F7 can also save the whole Ace as an .ace snapshot (memory and CPU registers, at any
+   time): F7 now asks whether to save the dictionary or a snapshot.
+ * Loading an .ace snapshot of a 51K Ace said it was not a valid snapshot (the end marker
+   after FFFFh was not read).
+ * SAVE / BSAVE also write .tzx tapes: they add the file to the tape in the player when it
+   is a .tzx too (standard speed data blocks), and F5 N makes a new .tzx when the name ends
+   in .tzx. With no tape in the player they still write name.tap.
+ * LOAD / BLOAD / VERIFY only read the tape in the player, like a cassette: with no tape
+   inserted they give ERROR 10 (they used to search every tape on the SD card, and the tape
+   found became the current one, so a later SAVE was added to it), and a file that is not
+   on the tape gives ERROR 10 (instead of a stand-in file). The files passed while
+   searching are shown, as on a real Ace.
+ * LOAD / BLOAD without a name list the files on the tape in the player and load nothing.
+ * Tape blocks are read as the ROM's own routine (18A7h) reads them: the next block, header
+   or data as asked (the .tzx flag byte is used), with its length and checksum checked, so
+   damaged tapes give ERROR 10 as on a real Ace, and programs that load their own blocks
+   through the ROM routine work.
+ * Shift + 1 / 2 / 4 / 9 / 0 are the Ace's Delete Line / Caps Lock / Inverse Video /
+   Graphics / Delete, as on the Ace (Original ACE keymap; `! @ $ ( )` are then Ctrl + 1 /
+   2 / 4 / 8 / 9, as on the Ace). Shift + 3 still types #.
+ * F2 is Caps Lock (Shift + 2), like F1 / F4 / F9 for the other Ace editing keys.
+ * The Ace's files (.tap, .tzx, .ace, .fth, .fs, .f) are now kept in a "programs" folder
+   on the SD card, in any subfolders, leaving the root to the boot files. It is made at
+   start-up, and Ace files in the root of the card are moved into it.
+ * F5 browses the folders (Enter opens one, Backspace goes up, M makes one); new files
+   (SAVE with no tape, F5 N, F7) go into the folder last open in F5. F6 also deletes
+   folders, with everything in them, after confirming.
+ * Long names in the F5 and F6 lists, and long lines in the Ctrl+TAB list, scroll when
+   selected (after a second, one character every 150 ms, a second's wait at the end);
+   Space scrolls them one character by hand. Long folder paths in the F5 / F6 title bar
+   and on the F7 save screens scroll the same way, towards their start.
+ * Ctrl+F12 offers 99K: Edwin Blink's 96K RAM pack, two 48K pages at 4000h - FFFFh
+   selected by bit 7 of the Z80's R register (LD R,A), latched at the next refresh as on
+   the pack. F7 snapshots keep both pages in the one .ace file: the other page follows the
+   end marker, where other emulators stop reading. Loading such a snapshot chooses the 96K
+   pack.
+ * F5 opens .zip files like folders (read only): their tapes, snapshots and Forth sources
+   are inserted, loaded or spooled straight from the .zip (stored or deflate, up to 4 MB
+   unpacked; puff.c by Mark Adler does the unpacking). SAVE with a tape from a .zip in
+   the player writes a new .tap next to the .zip. A .zip inside the .zip opens like a
+   folder too (unpacked into memory, up to 4 MB), as in collections that keep each
+   program in its own .zip. The web page handles .zip files as files.
+ * System update from the F11 web page (/system): upload a release .zip, confirm with Y on
+   the Ace, and only the changed files (kernel, boot and Wi-Fi firmware) are replaced. A
+   Pi 4 / 400 tries the new kernel once first (tryboot) and keeps the old one if it does
+   not start; other models are switched off and on by hand. The kernel carries its
+   version (src/version.h), shown on the page and in the log.
+ * build.sh also zips sdcard/ into dist/xAce-baremetal-<version>-pi<model>.zip (the
+   version from src/version.h). release.sh is merged into it: build.sh --all builds every
+   model, build.sh --all --publish also creates the GitHub release.
+ * Pi 400: its LED (the power light) stays on while the Ace runs, as in Raspberry Pi OS,
+   and goes out at power off (F10). Other models still show SD card access on the
+   activity LED.
+ * F11 opens a file exchange web page: the Pi joins the cable network or a Wi-Fi network
+   (DHCP) and serves a page (at its address or http://xace.local) for uploading several
+   files or whole folders at once, downloading files or folders (as a .zip), and making,
+   renaming, moving and deleting files and folders in the programs folder. The Ace is
+   paused while F11 is open. The Wi-Fi network name, password and country are typed on
+   the F11 screen and kept in wpa_supplicant.conf; the SD card gets the Wi-Fi firmware
+   in /firmware.
+
 ## 0.6 (30th October 2026)
 
  * Adapted from the original xAce 0.5 code by Edward Patel (see the entries below).

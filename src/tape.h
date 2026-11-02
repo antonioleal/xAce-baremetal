@@ -49,9 +49,13 @@ extern void tape_patches(char *mem);
 extern FILE* tape_attach(char *filename);
 extern void tape_detach();
 /* ED FC / ED FD traps (implemented in tape_sd.cpp) */
-/* bLoad: load the block at dest, else compare it with memory (VERIFY); length is
-   what the ROM asks for. Returns 0 on a verify mismatch. */
-extern int tape_load_p(unsigned char *mem, unsigned short dest, unsigned short length, int bLoad);
+/* The next block on the tape, with flag byte flag (00h header, FFh data) and length
+   bytes. bLoad: load it at dest, else compare it with memory (VERIFY). return_address
+   is the caller's. Returns 1 if the block was read (and, verifying, matched memory),
+   0 if not, TAPE_LOAD_ERROR (z80.h) for the ROM's ERROR 10 (no tape in the player, or
+   the file is not on it) or TAPE_LOAD_BREAK for BREAK. */
+extern int tape_load_p(unsigned char *mem, unsigned short dest, unsigned short length,
+                       unsigned char flag, int bLoad, unsigned short return_address);
 extern void tape_save_p(unsigned char *mem, unsigned short block_size);
 
 #endif

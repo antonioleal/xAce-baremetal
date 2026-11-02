@@ -14,9 +14,22 @@ the project builds from its own sources alone.
 
 The files are those of that commit, unchanged, except:
 
-  * Circle's own submodules addon/lvgl/lvgl (LVGL graphics library) and
-    addon/wlan/hostap (WLAN support) are not included: their folders are
-    empty. xAce-baremetal does not use them.
+  * Circle's own submodule addon/lvgl/lvgl (LVGL graphics library) is not
+    included: its folder is empty. xAce-baremetal does not use it.
+
+  * Circle's own submodule addon/wlan/hostap (the WPA supplicant, for Wi-Fi)
+    is included in part: https://github.com/rsta2/hostap at the commit
+    Step51.1.1 uses, 966cab4a3bc958e7ff304a46d91a6172a1bfecaf, with only the
+    files Circle's wpa_supplicant/Makefile.circle builds from (sources and
+    headers), plus COPYING, README and CONTRIBUTIONS. One file is changed:
+    wpa_supplicant/main_circle.cpp has two functions added for xAce-baremetal,
+    wpa_supplicant_is_running() and wpa_supplicant_reload() (marked "Added for
+    xAce-baremetal"). hostap is licensed under the BSD license, see
+    addon/wlan/hostap/COPYING.
+
+  * lib/net/httpdaemon.cpp: CHTTPDaemon::ParseRequest() checks that the path
+    of the request URI (before any "?") fits m_RequestPath (HTTP_MAX_PATH);
+    a longer one overran it. Marked "xAce-baremetal".
 
   * Config.mk (Circle's build configuration, ignored by Circle's .gitignore)
     is copied in by ../build.sh from ../circle-config/Config.mk: Raspberry Pi

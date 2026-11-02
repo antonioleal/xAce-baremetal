@@ -73,8 +73,9 @@ struct TKeyMapEntry {
  * US layout. Host symbols map to the Ace Symbol Shift legends:
  *   ! @ # $ %  1-5    & ' ( ) _  6 7 8 9 0    ~ | \ { }  A S D F G
  *   < > [ ]    R T Y U    ; "  O P    ^ - + =  H J K L    : ? / * , .  Z C V B N M
- * Host Shift is only passed to the Ace for letters and the special keys,
- * so that e.g. Shift+9 types '(' instead of entering graphics mode.
+ * Host Shift is passed to the Ace for letters, digits (the Ace's editing keys:
+ * Shift+9 is Graphics, as on the Ace) and the special keys; on the punctuation
+ * keys it gives the host's shifted symbol.
  */
 static const TKeyMapEntry s_KeyMap[] = {
     // Letters: host Shift becomes Ace Shift
@@ -86,19 +87,19 @@ static const TKeyMapEntry s_KeyMap[] = {
     {0x18, U_, NONE}, {0x19, V_, NONE}, {0x1A, W_, NONE}, {0x1B, X_, NONE},
     {0x1C, Y_, NONE}, {0x1D, Z_, NONE},
 
-    // Digit row: shifted gives the host symbol, except Shift + 5-8: the Ace's cursor
-    // keys, as on the Ace (% ^ & * are Symbol Shift + 5 / H / 6 / B). Original ACE only:
-    // the F8 layouts keep their symbols there
-    {0x1E, N1, SY|N1},      // 1 !
-    {0x1F, N2, SY|N2},      // 2 @
+    // Digit row: Shift + digit is the Ace's editing key, as on the Ace; the symbols
+    // ! @ $ % & ( ) are Symbol Shift (Ctrl) + 1 2 4 5 6 8 9. Shift + 3 has no function
+    // in the ROM, so it types #. Original ACE only: the F8 layouts keep their symbols
+    {0x1E, N1, NONE},       // 1, Shift: Delete Line
+    {0x1F, N2, NONE},       // 2, Shift: Caps Lock
     {0x20, N3, SY|N3},      // 3 #
-    {0x21, N4, SY|N4},      // 4 $
+    {0x21, N4, NONE},       // 4, Shift: Inverse Video
     {0x22, N5, NONE},       // 5, Shift: cursor left
     {0x23, N6, NONE},       // 6, Shift: cursor up (in the ROM)
     {0x24, N7, NONE},       // 7, Shift: cursor down
     {0x25, N8, NONE},       // 8, Shift: cursor right
-    {0x26, N9, SY|N8},      // 9 (
-    {0x27, N0, SY|N9},      // 0 )
+    {0x26, N9, NONE},       // 9, Shift: Graphics
+    {0x27, N0, NONE},       // 0, Shift: Delete
 
     // Control keys
     {0x28, ENTER, ENTER},           // Return
@@ -123,6 +124,7 @@ static const TKeyMapEntry s_KeyMap[] = {
 
     // Function keys
     {0x3A, SH|N1, SH|N1},   // F1 -> Delete Line
+    {0x3B, SH|N2, SH|N2},   // F2 -> Caps Lock
     {0x3D, SH|N4, SH|N4},   // F4 -> Inverse Video
     {0x42, SH|N9, SH|N9},   // F9 -> Graphics
 
@@ -184,6 +186,7 @@ static unsigned short ace_from_char(unsigned char c)
 #define HID_KEY_F4      0x3D
 #define HID_KEY_F10     0x43
 #define HID_KEY_ESCAPE  0x29
+#define HID_KEY_F11     0x44
 #define HID_KEY_F12     0x45
 #define HID_KEY_POWER   0x66        // keyboard power key, e.g. Fn+F10 on the Pi 400
 
@@ -200,6 +203,7 @@ static volatile int s_poweroff_requested = 0;
 static volatile int s_layout_requested = 0;
 static volatile int s_ram_requested = 0;
 static volatile int s_save_requested = 0;           // F7
+static volatile int s_network_requested = 0;        // F11
 static volatile int s_history_request = 0;          // TAB: 1 older line, Shift+TAB: -1 newer
 static volatile int s_history_list_requested = 0;   // Ctrl+TAB
 static volatile int s_enter_pressed = 0;            // for the line history
@@ -228,6 +232,7 @@ void keyboard_init(void)
     s_layout_requested = 0;
     s_ram_requested = 0;
     s_save_requested = 0;
+    s_network_requested = 0;
     s_joystick_requested = 0;
     s_history_request = 0;
     s_history_list_requested = 0;
@@ -333,6 +338,13 @@ int keyboard_check_other_key(void)
     int other = s_other_key_pressed;
     s_other_key_pressed = 0;
     return other;
+}
+
+int keyboard_check_network(void)
+{
+    int network = s_network_requested;
+    s_network_requested = 0;
+    return network;
 }
 
 int keyboard_check_save(void)
@@ -582,6 +594,11 @@ void keyboard_update(unsigned char ucModifiers, const unsigned char rawKeys[6])
 
         if (key == HID_KEY_F7) {
             if (bPressed) s_save_requested = 1;
+            continue;
+        }
+
+        if (key == HID_KEY_F11) {
+            if (bPressed) s_network_requested = 1;
             continue;
         }
 

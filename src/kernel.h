@@ -18,6 +18,7 @@
 #include <SDCard/emmc.h>
 
 #include "sound_ace.h"
+#include "web_files.h"
 
 struct TTapeListEntry;
 
@@ -26,6 +27,8 @@ enum TShutdownMode {
     ShutdownHalt,
     ShutdownReboot
 };
+
+struct TNameScroll;             // kernel.cpp: a long name scrolling in a list
 
 class CKernel {
 public:
@@ -50,10 +53,24 @@ private:
     void AttachJoystick(void);
     void UpdateKeyboard(void);
     void ClearText(void);
+    void ClearTextRow(int nRow);
     void DrawBar(int row, const char *pText);
     void ShowTapeList(void);
-    boolean ReadName(int nRow, char *pInput, unsigned nMax);
-    void DrawFileList(const TTapeListEntry *pEntries, int nFiles, int *pTop, int nSelected);
+    boolean ReadName(int nRow, char *pInput, unsigned nMax,
+                     TNameScroll *pFolderScroll = nullptr);
+    void DrawFileList(const TTapeListEntry *pEntries, int nFiles, int *pTop, int nSelected,
+                      unsigned nOffset = 0);
+    void DrawFileRow(const TTapeListEntry *pEntries, int nFiles, int nTop, int nIndex,
+                     const char *pFolder, boolean bSelected, unsigned nOffset);
+    void DrawHistoryRow(int nLines, int nTop, int nIndex, boolean bSelected, unsigned nOffset);
+    void GetScrolledListKey(unsigned char *pKey, unsigned char *pModifiers,
+                            TNameScroll *pScroll, const TTapeListEntry *pEntries,
+                            int nFiles, int nTop, int nSelected,
+                            const char *pTitle, TNameScroll *pTitleScroll);
+    void DrawListTitle(const char *pTitle, int nFiles, TNameScroll *pScroll = nullptr);
+    int ListFolder(TTapeListEntry *pEntries, const char *pSelect, int *pSelected);
+    boolean OpenFolder(const char *pName, TTapeListEntry *pEntries, int *pFiles,
+                       int *pSelected, int *pTop);
     void ShowDeleteTape(void);
     void ShowPowerOff(void);
     void ShowKeyboardLayout(void);
@@ -61,15 +78,25 @@ private:
     void JoystickControlName(int nControl, CString *pName);
     void DrawJoystickControls(int nSelected);
     void ShowRamSize(void);
+    void ShowSave(void);
     void ShowSaveDictionary(void);
+    void ShowSaveSnapshot(void);
+    void DrawSaveFolder(TNameScroll *pScroll);
     void ShowSaveResult(void);
     void ShowHistoryList(void);
+    void ShowNetwork(void);
+    void ConfirmUpdate(void);
+    void ShowUpdateResult(void);
+    boolean ChooseNetwork(TWebNetwork *pNetwork);
+    boolean EditWiFiSettings(void);
+    unsigned char ReadField(int nRow, int nRows, char *pInput, unsigned nMax, boolean bUpper);
+    void DrawFieldText(int nRow, int nRows, const char *pText);
     void ResetAce(void);
     void ResumeAce(void);
     unsigned char WaitForKey(void);
     void WaitForRelease(void);
-    void GetKeyEvent(unsigned char *pKey, unsigned char *pModifiers);
-    void GetListKey(unsigned char *pKey, unsigned char *pModifiers);
+    void GetKeyEvent(unsigned char *pKey, unsigned char *pModifiers, u64 nUntil = 0);
+    void GetListKey(unsigned char *pKey, unsigned char *pModifiers, u64 nUntil = 0);
 
     static void KeyStatusHandlerRaw(unsigned char ucModifiers, const unsigned char RawKeys[6]);
     static void KeyboardRemovedHandler(CDevice *pDevice, void *pContext);
@@ -107,6 +134,8 @@ private:
 
     unsigned char       m_ucRepeatKey;      // list key repeating while held (F5, F6, F8)
     u64                 m_nRepeatAt;
+    CString             m_UpdateLine1;      // what became of a system update (F11)
+    CString             m_UpdateLine2;
 
     static CKernel     *s_pThis;
 };

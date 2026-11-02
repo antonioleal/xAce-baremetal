@@ -20,8 +20,8 @@ enum TSpoolResult {
     SpoolNoCard
 };
 
-// Start spooling SD:/<name>
-TSpoolResult SpoolStart(const char *pInput);
+// Start spooling a file: its path in SD:/programs (tape_sd.h)
+TSpoolResult SpoolStart(const char *pPath);
 
 // Ace keys that text from memory can type, besides characters and '\n' (Enter)
 #define SPOOL_KEY_DELETE_LINE   0x01    // Shift+1

@@ -106,13 +106,27 @@ mainloop(void) {
     op=fetch(pc);
     pc++;
     radjust++;
+    if (__builtin_expect(ram_latch_pending, 0))  /* this opcode came from the old page: its refresh latches */
+      ram_latch(r);
 
     switch(op) {
       #include "z80ops.c"
     }
 
-    if(tstates>tsmax)
+    if(tstates>tsmax) {
+      /* the registers for an .ace snapshot saved while paused in fix_tstates() */
+      cpu_state.reg_af=(a<<8)|f;   cpu_state.reg_bc=(b<<8)|c;
+      cpu_state.reg_de=(d<<8)|e;   cpu_state.reg_hl=(h<<8)|l;
+      cpu_state.reg_af1=(a1<<8)|f1; cpu_state.reg_bc1=(b1<<8)|c1;
+      cpu_state.reg_de1=(d1<<8)|e1; cpu_state.reg_hl1=(h1<<8)|l1;
+      cpu_state.reg_ix=ix; cpu_state.reg_iy=iy; cpu_state.reg_sp=sp;
+      cpu_state.reg_pc=new_ixoriy ? pc-1 : pc;   /* after a DD / FD prefix: run it again */
+      cpu_state.reg_i=i;
+      cpu_state.reg_r=(r&0x80)|(radjust&0x7f);
+      cpu_state.reg_im=im==3 ? 2 : im==2 ? 1 : 0;
+      cpu_state.reg_iff1=iff1; cpu_state.reg_iff2=iff2;
       fix_tstates();
+    }
 
     /* checked before the interrupt so a reset never pushes onto
      * freshly cleared RAM */
@@ -154,6 +168,8 @@ mainloop(void) {
         pc++;                  /* return after the HALT */
         halted=0;
       }
+      if (__builtin_expect(ram_latch_pending, 0))   /* the acknowledge cycle's refresh */
+        ram_latch(r);
       do_interrupt();
       iff1=iff2=0;
       push2(pc);

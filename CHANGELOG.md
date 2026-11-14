@@ -1,3 +1,18 @@
+## 0.7.1 (not released yet)
+
+ * F5 opens a .zip inside a .zip like a folder too (unpacked into memory, up to 4 MB), as
+   in collections that keep each program in its own .zip (they showed no programs).
+ * Long names in the F5 and F6 lists, and long lines in the Ctrl+TAB list, scroll when
+   selected (after a second, one character every 150 ms, a second's wait at the end);
+   Space scrolls them one character by hand. Long folder paths in the F5 / F6 title bar
+   and on the F7 save screens scroll the same way, towards their start.
+ * Ctrl+F12 offers 99K: Edwin Blink's 96K RAM pack, two 48K pages at 4000h - FFFFh
+   selected by bit 7 of the Z80's R register (LD R,A), latched at the next refresh as on
+   the pack. F7 snapshots keep both pages in the one .ace file: the other page follows the
+   end marker, where other emulators stop reading, in a block starting "ACE-96K", as
+   Jupiter-IIb and the JupiterACE MiSTer core write and read it. Loading such a snapshot
+   chooses the 96K pack.
+
 ## 0.7 (2nd November 2026)
 
  * F7 can also save the whole Ace as an .ace snapshot (memory and CPU registers, at any
@@ -27,21 +42,11 @@
  * F5 browses the folders (Enter opens one, Backspace goes up, M makes one); new files
    (SAVE with no tape, F5 N, F7) go into the folder last open in F5. F6 also deletes
    folders, with everything in them, after confirming.
- * Long names in the F5 and F6 lists, and long lines in the Ctrl+TAB list, scroll when
-   selected (after a second, one character every 150 ms, a second's wait at the end);
-   Space scrolls them one character by hand. Long folder paths in the F5 / F6 title bar
-   and on the F7 save screens scroll the same way, towards their start.
- * Ctrl+F12 offers 99K: Edwin Blink's 96K RAM pack, two 48K pages at 4000h - FFFFh
-   selected by bit 7 of the Z80's R register (LD R,A), latched at the next refresh as on
-   the pack. F7 snapshots keep both pages in the one .ace file: the other page follows the
-   end marker, where other emulators stop reading. Loading such a snapshot chooses the 96K
-   pack.
  * F5 opens .zip files like folders (read only): their tapes, snapshots and Forth sources
    are inserted, loaded or spooled straight from the .zip (stored or deflate, up to 4 MB
    unpacked; puff.c by Mark Adler does the unpacking). SAVE with a tape from a .zip in
-   the player writes a new .tap next to the .zip. A .zip inside the .zip opens like a
-   folder too (unpacked into memory, up to 4 MB), as in collections that keep each
-   program in its own .zip. The web page handles .zip files as files.
+   the player writes a new .tap next to the .zip. The web page handles .zip files as
+   files.
  * System update from the F11 web page (/system): upload a release .zip, confirm with Y on
    the Ace, and only the changed files (kernel, boot and Wi-Fi firmware) are replaced. A
    Pi 4 / 400 tries the new kernel once first (tryboot) and keeps the old one if it does

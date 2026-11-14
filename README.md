@@ -411,7 +411,8 @@ other emulators can load the file; MAME only loads snapshots of machines up to 1
 
 With the 96K RAM pack the snapshot is still one `.ace` file: the page in use is saved as
 usual, and the other page follows the snapshot's end marker, with which page was in use
-(the block starts with `XACE96K`). Loading it chooses the 96K pack and restores both
+(the block starts with `ACE-96K`, as in Jupiter-IIb and the JupiterACE MiSTer core, which
+load both pages too). Loading it chooses the 96K pack and restores both
 pages. Other emulators stop reading at the end marker (EightyOne does), so they load it
 as a 51K snapshot of the page in use. A snapshot without that block loaded with the 96K
 pack goes into the page that bit 7 of its R register selects; the other page is kept.

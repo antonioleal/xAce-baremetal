@@ -1535,9 +1535,10 @@ TTapeFileResult TapeRenameFile(const char *pFrom, const char *pTo)
  * With the 96K RAM pack (two 48K pages at 0x4000, see ram_ace.h) the snapshot
  * holds the page in use as usual, and its other page follows the end marker,
  * where other emulators stop reading (EightyOne, MAME):
- *     "XACE96K" 01 <page>  signature, version, the page in use (0 or 1)
+ *     "ACE-96K" 01 <page>  signature, version, the page in use (0 or 1)
  *     the other page, 0x4000 - 0xFFFF, coded as above, and ED 00
- * Loading it chooses the 96K pack.
+ * Loading it chooses the 96K pack. Jupiter-IIb and the JupiterACE MiSTer core write
+ * and read the same block.
  */
 #define SNAPSHOT_START  0x2000
 #define SYSVAR_RAMTOP   0x3C18      // first byte above the RAM, 0 for 64K
@@ -1545,7 +1546,7 @@ TTapeFileResult TapeRenameFile(const char *pFrom, const char *pTo)
 
 static unsigned char s_Snapshot[0x10000];   // decoded, indexed by Ace address
 
-static const char PageSignature[] = "XACE96K";  // 7 characters, then version 1
+static const char PageSignature[] = "ACE-96K";  // 7 characters, then version 1
 #define PAGE_VERSION    1
 
 // Buffered byte reader for the decoder

@@ -1,4 +1,4 @@
-## 0.7.1 (not released yet)
+## 0.7.1 (14th November 2026)
 
  * F5 opens a .zip inside a .zip like a folder too (unpacked into memory, up to 4 MB), as
    in collections that keep each program in its own .zip (they showed no programs).
